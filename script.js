@@ -30,7 +30,7 @@ if (SCENARIO === 2) {
     if (!__ENV.DURATION) throw new Error('SCENARIO=2 ต้องระบุ -e DURATION=<เวลา> เช่น -e DURATION=60s');
     REQUESTS = Number(__ENV.REQUESTS);
     DURATION = __ENV.DURATION;
-    RATE_PER_SECOND = Math.ceil(REQUESTS / durationToSeconds(DURATION));
+    RATE_PER_SECOND = Math.ceil(REQUESTS / durationToSeconds(DURATION));   // ใช้แค่คำนวณ VU_POOL ไม่ได้เอาไปตั้งเป็น rate จริง (กันปัดเศษเพี้ยน total)
     VU_POOL = Math.max(RATE_PER_SECOND * 2, 10);
 }
 
@@ -43,9 +43,10 @@ export const options = {
         contacts:
             SCENARIO === 2
                 ? {
+                    // "REQUESTS ครั้ง ต่อทุกๆ ช่วง DURATION" รันแค่ 1 รอบ -> ได้ total ตรง REQUESTS เป๊ะ ไม่ปัดเศษ
                     executor: 'constant-arrival-rate',
-                    rate: RATE_PER_SECOND,
-                    timeUnit: '1s',
+                    rate: REQUESTS,
+                    timeUnit: DURATION,
                     duration: DURATION,
                     preAllocatedVUs: VU_POOL,
                     maxVUs: VU_POOL,
@@ -94,7 +95,7 @@ function logResponse(response) {
 
 // API FUNCTIONS
 export function exam() {
-    const url = 'https://google.com';
+    const url = 'https://template.postman-echo.com';
     const params = {
         timeout: '300s',    // ถ้าไม่กำหนด timeout K6 จะใช้ 60s เป็น default
     };
